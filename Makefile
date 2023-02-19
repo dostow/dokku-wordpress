@@ -88,6 +88,12 @@ ifndef UNATTENDED_CREATION
 	@echo "chown 32767:32767 /var/lib/dokku/data/storage/$(APP_NAME)-languages"
 	@echo "dokku storage:mount $(APP_NAME) /var/lib/dokku/data/storage/$(APP_NAME)-languages:/app/wp-content/languages"
 	@echo ""
+	# setup themes persistent storage
+	@echo ""
+	@echo "mkdir -p /var/lib/dokku/data/storage/$(APP_NAME)-themes"
+	@echo "chown 32767:32767 /var/lib/dokku/data/storage/$(APP_NAME)-themes"
+	@echo "dokku storage:mount $(APP_NAME) /var/lib/dokku/data/storage/$(APP_NAME)-themes:/app/wp-content/themes"
+	@echo ""
 	# setup your mysql database and link it to your app
 	# if you're using MariaDB, replace mysql with mariadb
 	@echo ""
@@ -111,6 +117,7 @@ else
 	$(DOKKU_CMD) storage:mount $(APP_NAME) /var/lib/dokku/data/storage/$(APP_NAME)-plugins:/app/wp-content/plugins
 	$(DOKKU_CMD) storage:mount $(APP_NAME) /var/lib/dokku/data/storage/$(APP_NAME)-uploads:/app/wp-content/uploads
 	$(DOKKU_CMD) storage:mount $(APP_NAME) /var/lib/dokku/data/storage/$(APP_NAME)-languages:/app/wp-content/languages
+	$(DOKKU_CMD) storage:mount $(APP_NAME) /var/lib/dokku/data/storage/$(APP_NAME)-themes:/app/wp-content/themes
 	$(DOKKU_CMD) mariadb:create $(APP_NAME)-database
 	$(DOKKU_CMD) mariadb:link $(APP_NAME)-database $(APP_NAME)
 	$(DOKKU_CMD) proxy:set $(APP_NAME) traefik
