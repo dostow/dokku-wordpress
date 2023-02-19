@@ -3,11 +3,11 @@ ifndef APP_NAME
 endif
 
 ifndef WORDPRESS_VERSION
-	WORDPRESS_VERSION = 4.9.6
+	WORDPRESS_VERSION = 6.1.1
 endif
 
 ifndef BUILDPACK_VERSION
-	BUILDPACK_VERSION = v180
+	BUILDPACK_VERSION = v229
 endif
 
 ifndef DOKKU_USER
@@ -45,6 +45,8 @@ endif
 endif
 	# creating the wordpress repo
 	@test -d $(APP_NAME) || (git -c advice.detachedHead=false clone --branch=$(WORDPRESS_VERSION) --single-branch https://github.com/WordPress/WordPress.git $(APP_NAME) && cd $(APP_NAME) && git checkout -qb master)
+	# adding .htaccess
+	@test -f $(APP_NAME)/.htaccess || (cp config/.htaccess $(APP_NAME)/.htaccess && cd $(APP_NAME) && git add .htaccess && git commit -qm "Adding .htaccess")
 	# adding wp-config.php from gist
 	@test -f $(APP_NAME)/wp-config.php || (cp config/wp-config.php $(APP_NAME)/wp-config.php && cd $(APP_NAME) && git add wp-config.php && git commit -qm "Adding environment-variable based wp-config.php")
 	# adding .env file to configure buildpack
@@ -90,8 +92,8 @@ ifndef UNATTENDED_CREATION
 	# if you're using MariaDB, replace mysql with mariadb
 	@echo ""
 	@echo "export MYSQL_IMAGE_VERSION=\"5.6\""
-	@echo "dokku mysql:create $(APP_NAME)-database"
-	@echo "dokku mysql:link $(APP_NAME)-database $(APP_NAME)"
+	@echo "dokku mariadb:create $(APP_NAME)-database"
+	@echo "dokku mariadb:link $(APP_NAME)-database $(APP_NAME)"
 	@echo ""
 	# you will also need to set the proper environment variables for keys and salts
 	# the following were generated using the wordpress salt api: https://api.wordpress.org/secret-key/1.1/salt/
@@ -109,8 +111,9 @@ else
 	$(DOKKU_CMD) storage:mount $(APP_NAME) /var/lib/dokku/data/storage/$(APP_NAME)-plugins:/app/wp-content/plugins
 	$(DOKKU_CMD) storage:mount $(APP_NAME) /var/lib/dokku/data/storage/$(APP_NAME)-uploads:/app/wp-content/uploads
 	$(DOKKU_CMD) storage:mount $(APP_NAME) /var/lib/dokku/data/storage/$(APP_NAME)-languages:/app/wp-content/languages
-	$(DOKKU_CMD) mysql:create $(APP_NAME)-database
-	$(DOKKU_CMD) mysql:link $(APP_NAME)-database $(APP_NAME)
+	$(DOKKU_CMD) mariadb:create $(APP_NAME)-database
+	$(DOKKU_CMD) mariadb:link $(APP_NAME)-database $(APP_NAME)
+	$(DOKKU_CMD) proxy:set $(APP_NAME) traefik
 	@/tmp/wp-salts
 	@echo ""
 	# run the following commands on the server to ensure data is stored properly on disk
@@ -140,8 +143,8 @@ ifndef UNATTENDED_CREATION
 	# destroy the mysql database
 	# if you're using MariaDB, replace mysql with mariadb
 	@echo ""
-	@echo "dokku mysql:unlink $(APP_NAME)-database $(APP_NAME)"
-	@echo "dokku mysql:destroy $(APP_NAME)-database"
+	@echo "dokku mariadb:unlink $(APP_NAME)-database $(APP_NAME)"
+	@echo "dokku mariadb:destroy $(APP_NAME)-database"
 	@echo ""
 	# destroy the app
 	@echo ""
@@ -159,8 +162,8 @@ ifndef UNATTENDED_CREATION
 else
 	# destroy the mysql database
 	# if you're using MariaDB, replace mysql with mariadb
-	$(DOKKU_CMD) mysql:unlink $(APP_NAME)-database $(APP_NAME)
-	$(DOKKU_CMD) mysql:destroy $(APP_NAME)-database
+	$(DOKKU_CMD) mariadb:unlink $(APP_NAME)-database $(APP_NAME)
+	$(DOKKU_CMD) mariadb:destroy $(APP_NAME)-database
 	# destroy the app
 	$(DOKKU_CMD) -- --force apps:destroy $(APP_NAME)
 	# run the following commands on the server to remove storage directories on disk
