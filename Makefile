@@ -120,7 +120,6 @@ else
 	$(DOKKU_CMD) storage:mount $(APP_NAME) /var/lib/dokku/data/storage/$(APP_NAME)-themes:/app/wp-content/themes
 	$(DOKKU_CMD) mariadb:create $(APP_NAME)-database
 	$(DOKKU_CMD) mariadb:link $(APP_NAME)-database $(APP_NAME)
-	$(DOKKU_CMD) proxy:set $(APP_NAME) traefik
 	@/tmp/wp-salts
 	@echo ""
 	# run the following commands on the server to ensure data is stored properly on disk
